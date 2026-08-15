@@ -14,16 +14,16 @@ WORKDIR /app
 COPY pyproject.toml ./
 
 # Install dependencies only
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,id=s/462e1bec-15c3-4fe7-a73f-822ba6a635be-/root/.cache/uv,target=/root/.cache/uv \
     uv sync --no-install-project --all-extras --compile-bytecode
 
 # Copy source code
 COPY . .
 
 # Install browsers and project in one optimized layer
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/var/lib/apt \
+RUN --mount=type=cache,id=s/462e1bec-15c3-4fe7-a73f-822ba6a635be-/root/.cache/uv,target=/root/.cache/uv \
+    --mount=type=cache,id=s/462e1bec-15c3-4fe7-a73f-822ba6a635be-/var/cache/apt,target=/var/cache/apt \
+    --mount=type=cache,id=s/462e1bec-15c3-4fe7-a73f-822ba6a635be-/var/lib/apt,target=/var/lib/apt \
     apt-get update && \
     uv run playwright install-deps chromium && \
     uv run playwright install chromium && \
@@ -34,8 +34,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Expose port for MCP server HTTP transport
 EXPOSE 8000
 
-# Set entrypoint to run scrapling
-ENTRYPOINT ["uv", "run", "scrapling"]
-
-# Default command (can be overridden)
-CMD ["--help"]
+# Railway injects PORT at runtime. Start the authenticated streamable HTTP MCP
+# server directly so no Railway start-command override is required.
+ENTRYPOINT ["/bin/sh", "-c"]
+CMD ["exec uv run scrapling mcp --http --host 0.0.0.0 --port ${PORT:-8000}"]
