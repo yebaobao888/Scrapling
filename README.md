@@ -551,6 +551,16 @@ docker pull ghcr.io/d4vinci/scrapling:latest
 ```
 This image is automatically built and pushed using GitHub Actions and the repository's main branch.
 
+### Railway MCP Deployment
+
+This fork tracks [D4Vinci/Scrapling](https://github.com/D4Vinci/Scrapling) and carries only the Dockerfile changes needed by Railway's Metal builder: service-scoped BuildKit cache IDs and an HTTP MCP default command. Railway deploys the `railway-mcp` branch with the Dockerfile builder and starts the service with:
+
+```bash
+/bin/sh -c 'exec uv run scrapling mcp --http --host 0.0.0.0 --port "$PORT"'
+```
+
+Set `SCRAPLING_MCP_AUTH_TOKEN` as a sealed Railway variable. Clients connect to `/mcp` over HTTPS and provide it as a Bearer token. To update from upstream, merge or rebase the desired upstream release into `railway-mcp`, preserve the Railway-specific Dockerfile changes, run `docker buildx build --check .`, then deploy and smoke-test `initialize`, `tools/list`, `get`, and `fetch` before promoting the update.
+
 ## Contributing
 
 We welcome contributions! Please read our [contributing guidelines](https://github.com/D4Vinci/Scrapling/blob/main/CONTRIBUTING.md) before getting started.
