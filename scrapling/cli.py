@@ -20,6 +20,7 @@ except (ImportError, ModuleNotFoundError) as e:
 
 __OUTPUT_FILE_HELP__ = "The output file path can be an HTML file, a Markdown file of the HTML content, or the text content itself. Use file extensions (`.html`/`.md`/`.txt`) respectively."
 __PACKAGE_DIR__ = Path(__file__).parent
+MCP_ALLOWED_HOSTS_ENV = "SCRAPLING_MCP_ALLOWED_HOSTS"
 
 
 def __Execute(cmd: List[str], help_line: str) -> None:  # pragma: no cover
@@ -176,13 +177,17 @@ def install(force):  # pragma: no cover
     type=str,
     multiple=True,
     help="Enable DNS-rebinding protection and accept requests for this host only, like 'mcp.example.com:8000' "
-    "(repeatable). Recommended whenever the server listens on a public address",
+    f"(repeatable). If omitted, uses comma-separated hosts from {MCP_ALLOWED_HOSTS_ENV}. "
+    "Recommended whenever the server listens on a public address",
 )
 def mcp(http, host, port, executable_path, auth_token, allowed_host):
     from scrapling.core.ai import ScraplingMCPServer
 
     server = ScraplingMCPServer(executable_path=executable_path, auth_token=auth_token)
-    server.serve(http, host, port, allowed_hosts=allowed_host)
+    configured_hosts = allowed_host or tuple(
+        value.strip() for value in environ.get(MCP_ALLOWED_HOSTS_ENV, "").split(",") if value.strip()
+    )
+    server.serve(http, host, port, allowed_hosts=configured_hosts)
 
 
 @command(help="Interactive scraping console")

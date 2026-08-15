@@ -559,7 +559,7 @@ This fork tracks [D4Vinci/Scrapling](https://github.com/D4Vinci/Scrapling) and c
 /bin/sh -c 'exec uv run scrapling mcp --http --host 0.0.0.0 --port "$PORT"'
 ```
 
-Set `SCRAPLING_MCP_AUTH_TOKEN` as a sealed Railway variable. Clients connect to `/mcp` over HTTPS and provide it as a Bearer token. To update from upstream, merge or rebase the desired upstream release into `railway-mcp`, preserve the Railway-specific Dockerfile changes, run `docker buildx build --check .`, then deploy and smoke-test `initialize`, `tools/list`, `get`, and `fetch` before promoting the update.
+Set `SCRAPLING_MCP_AUTH_TOKEN` as a sealed Railway variable. Clients connect to `/mcp` over HTTPS and provide it as a Bearer token. Also set `SCRAPLING_MCP_ALLOWED_HOSTS` to the comma-separated public hostnames (for example, `scrapling-mcp-production-<id>.up.railway.app`) so the server enables DNS-rebinding protection. To update from upstream, merge or rebase the desired upstream release into `railway-mcp`, preserve the Railway-specific Dockerfile changes, run `docker buildx build --check .`, then deploy and smoke-test `initialize`, `tools/list`, `get`, and `fetch` before promoting the update.
 
 ## Contributing
 

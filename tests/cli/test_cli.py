@@ -95,6 +95,20 @@ class TestCLI:
                 True, "0.0.0.0", 8000, allowed_hosts=("mcp.example.com:8000", "127.0.0.1:8000")
             )
 
+    def test_mcp_command_uses_allowed_hosts_from_environment(self, runner, monkeypatch):
+        """Public deployments can enable DNS-rebinding protection without putting hosts in the command line."""
+        monkeypatch.setenv("SCRAPLING_MCP_ALLOWED_HOSTS", "mcp.example.com, mcp.internal:8000, ")
+        with patch("scrapling.core.ai.ScraplingMCPServer") as mock_server:
+            mock_instance = MagicMock()
+            mock_server.return_value = mock_instance
+
+            result = runner.invoke(mcp, ["--http"])
+
+        assert result.exit_code == 0
+        mock_instance.serve.assert_called_once_with(
+            True, "0.0.0.0", 8000, allowed_hosts=("mcp.example.com", "mcp.internal:8000")
+        )
+
     def test_extract_get_command(self, runner, tmp_path, html_url):
         """Test extract `get` command"""
         output_file = tmp_path / "output.md"
