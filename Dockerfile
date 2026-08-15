@@ -20,11 +20,15 @@ RUN --mount=type=cache,id=s/462e1bec-15c3-4fe7-a73f-822ba6a635be-/root/.cache/uv
 # Copy source code
 COPY . .
 
-# Install browsers and project in one optimized layer
+# Install browsers and project in one optimized layer.  Scrapling's regular
+# browser fetchers use Playwright while its anti-bot `stealthy_fetch` tool uses
+# Patchright, whose Chromium revision is installed independently.
 RUN --mount=type=cache,id=s/462e1bec-15c3-4fe7-a73f-822ba6a635be-/root/.cache/uv,target=/root/.cache/uv \
     --mount=type=cache,id=s/462e1bec-15c3-4fe7-a73f-822ba6a635be-/var/cache/apt,target=/var/cache/apt \
     --mount=type=cache,id=s/462e1bec-15c3-4fe7-a73f-822ba6a635be-/var/lib/apt,target=/var/lib/apt \
     apt-get update && \
+    uv run patchright install-deps chromium && \
+    uv run patchright install chromium && \
     uv run playwright install-deps chromium && \
     uv run playwright install chromium && \
     uv sync --all-extras --compile-bytecode && \
